@@ -1,28 +1,28 @@
 # Development
 
-Add details here to give a brief overview of how to work with the provider APIs.
-Please reference any SDKs or API docs used to help build the integration here.
-
-## Prerequisites
-
-Supply details about software or tooling (like maybe Docker or Terraform) that
-is needed for development here.
-
-Please supply references to documentation that details how to install those
-dependencies here.
-
-Tools like Node.js and NPM are already covered in the [README](../README.md) so
-don't bother documenting that here.
+This integration focuses on [SimpleMDM](https://simplemdm.com/) and is using
+[SimpleMDM API](https://simplemdm.com/docs/api/#introduction) for interacting
+with the Datastax resources.
 
 ## Provider account setup
 
-Please provide information about the steps needed to create an account with a
-provider. Images and references to a provider's documentation is very helpful
-for new developers picking up your work.
+1. Sign-up for a SimpleMDM account
+2. In the dashboard, under Account, click API
+3. Click "Add API Key"
+4. Provide a name for the API Key
+5. The following permissions should have roles set to `read`:
+
+   - Account
+   - Apps
+   - Devices
+
+6. Click Save
+7. Under Secret Access Key, click `reveal` and save the details. This will serve
+   as your API Key.
 
 ## Authentication
 
-Supply details here for information on how to authenticate with a provider so
-that developers have an idea of what's needed to hit APIs. It may be useful to
-provide explanations for each value specified in the
-[`IntegrationInstanceConfigFieldMap`](../src/config.ts).
+Provide the `API_KEY` to the `.env`. You can use
+[`.env.example`](../.env.example) as a reference.
+
+The API Key will be used to authorize requests using token authentication.

@@ -1,56 +1,159 @@
-import http from 'http';
-
-import { IntegrationProviderAuthenticationError } from '@jupiterone/integration-sdk-core';
+import fetch, { Response } from 'node-fetch';
+import { retry } from '@lifeomic/attempt';
+import {
+  IntegrationProviderAPIError,
+  IntegrationProviderAuthenticationError,
+} from '@jupiterone/integration-sdk-core';
 
 import { IntegrationConfig } from './config';
-import { AcmeUser, AcmeGroup } from './types';
+import {
+  SimpleMDMResponse,
+  SimpleMDMAccount,
+  SimpleMDMDevice,
+  SimpleMDMApplication,
+  SimpleMDMUser,
+} from './types';
 
 export type ResourceIteratee<T> = (each: T) => Promise<void> | void;
 
-/**
- * An APIClient maintains authentication state and provides an interface to
- * third party data APIs.
- *
- * It is recommended that integrations wrap provider data APIs to provide a
- * place to handle error responses and implement common patterns for iterating
- * resources.
- */
 export class APIClient {
   constructor(readonly config: IntegrationConfig) {}
 
-  public async verifyAuthentication(): Promise<void> {
-    // TODO make the most light-weight request possible to validate
-    // authentication works with the provided credentials, throw an err if
-    // authentication fails
-    const request = new Promise<void>((resolve, reject) => {
-      http.get(
-        {
-          hostname: 'localhost',
-          port: 443,
-          path: '/api/v1/some/endpoint?limit=1',
-          agent: false,
-          timeout: 10,
+  private perPage = 100;
+  private baseUri = `https://a.simplemdm.com`;
+  private encodedApiKey = Buffer.from(this.config.apiKey + ':').toString(
+    'base64',
+  );
+
+  private withBaseUri = (path: string) => `${this.baseUri}${path}`;
+
+  private checkStatus = (response: Response) => {
+    if (response.ok) {
+      return response;
+    } else {
+      throw new IntegrationProviderAPIError(response);
+    }
+  };
+
+  private async request(
+    uri: string,
+    method: 'GET' | 'HEAD' = 'GET',
+  ): Promise<any> {
+    try {
+      // Handle rate-limiting
+      const response = await retry(
+        async () => {
+          const res: Response = await fetch(uri, {
+            method,
+            headers: {
+              Authorization: `Basic ${this.encodedApiKey}`,
+            },
+          });
+          return this.checkStatus(res);
         },
-        (res) => {
-          if (res.statusCode !== 200) {
-            reject(new Error('Provider authentication failed'));
-          } else {
-            resolve();
-          }
+        {
+          delay: 5000,
+          maxAttempts: 10,
+          handleError: (err, context) => {
+            if (
+              err.statusCode !== 429 ||
+              ([500, 502, 503].includes(err.statusCode) &&
+                context.attemptNum > 1)
+            )
+              context.abort();
+          },
         },
       );
-    });
-
-    try {
-      await request;
+      return response.json();
     } catch (err) {
-      throw new IntegrationProviderAuthenticationError({
-        cause: err,
-        endpoint: 'https://localhost/api/v1/some/endpoint?limit=1',
+      throw new IntegrationProviderAPIError({
+        endpoint: uri,
         status: err.status,
         statusText: err.statusText,
       });
     }
+  }
+
+  private async paginatedRequest<T>(
+    uri: string,
+    method: 'GET' | 'HEAD' = 'GET',
+    iteratee: ResourceIteratee<T>,
+  ): Promise<void> {
+    try {
+      let nextUri: string | null = null;
+      do {
+        const response: SimpleMDMResponse = await this.request(
+          nextUri || uri,
+          method,
+        );
+        nextUri = response['has_more']
+          ? `${uri}&starting_after=${
+              response.data[response.data.length - 1].id
+            }`
+          : null;
+        for (const item of response.data) {
+          await iteratee(item as unknown as T);
+        }
+      } while (nextUri);
+    } catch (err) {
+      throw new IntegrationProviderAPIError({
+        cause: new Error(err.message),
+        endpoint: uri,
+        status: err.statusCode,
+        statusText: err.message,
+      });
+    }
+  }
+
+  public async verifyAuthentication(): Promise<void> {
+    const uri = this.withBaseUri('/api/v1/account');
+    try {
+      await this.request(uri);
+    } catch (err) {
+      throw new IntegrationProviderAuthenticationError({
+        cause: err,
+        endpoint: uri,
+        status: err.status,
+        statusText: err.statusText,
+      });
+    }
+  }
+
+  /**
+   * Fetch the account resource in the provider.
+   */
+  public async fetchAccount(): Promise<SimpleMDMAccount> {
+    return this.request(this.withBaseUri(`/api/v1/account`), 'GET');
+  }
+
+  /**
+   * Iterates each application resource in the provider.
+   *
+   * @param iteratee receives each resource to produce entities/relationships
+   */
+  public async iterateApplications(
+    iteratee: ResourceIteratee<SimpleMDMApplication>,
+  ): Promise<void> {
+    await this.paginatedRequest<SimpleMDMApplication>(
+      this.withBaseUri(`/api/v1/apps?limit=${this.perPage}`),
+      'GET',
+      iteratee,
+    );
+  }
+
+  /**
+   * Iterates each device resource in the provider.
+   *
+   * @param iteratee receives each resource to produce entities/relationships
+   */
+  public async iterateDevices(
+    iteratee: ResourceIteratee<SimpleMDMDevice>,
+  ): Promise<void> {
+    await this.paginatedRequest<SimpleMDMDevice>(
+      this.withBaseUri(`/api/v1/devices?limit=${this.perPage}`),
+      'GET',
+      iteratee,
+    );
   }
 
   /**
@@ -59,63 +162,16 @@ export class APIClient {
    * @param iteratee receives each resource to produce entities/relationships
    */
   public async iterateUsers(
-    iteratee: ResourceIteratee<AcmeUser>,
+    deviceId: string,
+    iteratee: ResourceIteratee<SimpleMDMUser>,
   ): Promise<void> {
-    // TODO paginate an endpoint, invoke the iteratee with each record in the
-    // page
-    //
-    // The provider API will hopefully support pagination. Functions like this
-    // should maintain pagination state, and for each page, for each record in
-    // the page, invoke the `ResourceIteratee`. This will encourage a pattern
-    // where each resource is processed and dropped from memory.
-
-    const users: AcmeUser[] = [
-      {
-        id: 'acme-user-1',
-        name: 'User One',
-      },
-      {
-        id: 'acme-user-2',
-        name: 'User Two',
-      },
-    ];
-
-    for (const user of users) {
-      await iteratee(user);
-    }
-  }
-
-  /**
-   * Iterates each group resource in the provider.
-   *
-   * @param iteratee receives each resource to produce entities/relationships
-   */
-  public async iterateGroups(
-    iteratee: ResourceIteratee<AcmeGroup>,
-  ): Promise<void> {
-    // TODO paginate an endpoint, invoke the iteratee with each record in the
-    // page
-    //
-    // The provider API will hopefully support pagination. Functions like this
-    // should maintain pagination state, and for each page, for each record in
-    // the page, invoke the `ResourceIteratee`. This will encourage a pattern
-    // where each resource is processed and dropped from memory.
-
-    const groups: AcmeGroup[] = [
-      {
-        id: 'acme-group-1',
-        name: 'Group One',
-        users: [
-          {
-            id: 'acme-user-1',
-          },
-        ],
-      },
-    ];
-
-    for (const group of groups) {
-      await iteratee(group);
-    }
+    await this.paginatedRequest<SimpleMDMUser>(
+      this.withBaseUri(
+        `/api/v1/devices/${deviceId}/users?limit=${this.perPage}`,
+      ),
+      'GET',
+      iteratee,
+    );
   }
 }
 
