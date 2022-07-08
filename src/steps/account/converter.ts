@@ -3,23 +3,24 @@ import {
   Entity,
 } from '@jupiterone/integration-sdk-core';
 
+import { SimpleMDMAccount } from '../../types';
 import { Entities } from '../constants';
 
-export function createAccountEntity(): Entity {
+export function getAccountKey(name: string): string {
+  const formattedName = name.replace(/[^a-z0-9 ]/gi, '').replace(' ', '_');
+  return `simplemdm_account:${formattedName}`;
+}
+
+export function createAccountEntity(account: SimpleMDMAccount): Entity {
   return createIntegrationEntity({
     entityData: {
-      source: {
-        id: 'acme-unique-account-id',
-        name: 'Example Co. Acme Account',
-      },
+      source: account,
       assign: {
-        _key: 'acme-unique-account-id',
+        _key: getAccountKey(account.data.attributes.name),
         _type: Entities.ACCOUNT._type,
         _class: Entities.ACCOUNT._class,
-        mfaEnabled: true,
-        // This is a custom property that is not a part of the data model class
-        // hierarchy. See: https://github.com/JupiterOne/data-model/blob/master/src/schemas/Account.json
-        manager: 'Manager Name',
+        name: account.data.attributes.name,
+        appleStoreCountryCode: account.data.attributes.apple_store_country_code,
       },
     },
   });

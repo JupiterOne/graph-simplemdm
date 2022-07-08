@@ -4,7 +4,7 @@ import { IntegrationConfig } from '../../../../src/config';
 export const accountSpec: StepSpec<IntegrationConfig>[] = [
   {
     /**
-     * ENDPOINT: n/a
+     * ENDPOINT: https://a.simplemdm.com/api/v1/account
      * PATTERN: Singleton
      */
     id: 'fetch-account',
@@ -12,7 +12,7 @@ export const accountSpec: StepSpec<IntegrationConfig>[] = [
     entities: [
       {
         resourceName: 'Account',
-        _type: 'acme_account',
+        _type: 'simplemdm_account',
         _class: ['Account'],
       },
     ],
