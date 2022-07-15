@@ -9,6 +9,7 @@ export const Steps = {
   APPLICATIONS: 'fetch-applications',
   DEVICES: 'fetch-devices',
   USERS: 'fetch-users',
+  BUILD_APPLICATION_DEVICE: 'build-application-device-relationships',
 };
 
 export const Entities: Record<
@@ -38,7 +39,10 @@ export const Entities: Record<
 };
 
 export const Relationships: Record<
-  'ACCOUNT_HAS_APPLICATION' | 'ACCOUNT_HAS_DEVICE' | 'DEVICE_HAS_USER',
+  | 'ACCOUNT_HAS_APPLICATION'
+  | 'ACCOUNT_HAS_DEVICE'
+  | 'DEVICE_HAS_USER'
+  | 'DEVICE_INSTALLED_APPLICATION',
   StepRelationshipMetadata
 > = {
   ACCOUNT_HAS_APPLICATION: {
@@ -58,5 +62,11 @@ export const Relationships: Record<
     sourceType: Entities.DEVICE._type,
     _class: RelationshipClass.HAS,
     targetType: Entities.USER._type,
+  },
+  DEVICE_INSTALLED_APPLICATION: {
+    _type: 'simplemdm_device_installed_application',
+    sourceType: Entities.DEVICE._type,
+    _class: RelationshipClass.INSTALLED,
+    targetType: Entities.APPLICATION._type,
   },
 };

@@ -1,4 +1,5 @@
 import { executeStepWithDependencies } from '@jupiterone/integration-sdk-testing';
+
 import { buildStepTestConfigForStep } from '../../../test/config';
 import { Recording, setupProjectRecording } from '../../../test/recording';
 import { Steps } from '../constants';
@@ -9,10 +10,10 @@ afterEach(async () => {
   await recording.stop();
 });
 
-test('fetch-access-roles', async () => {
+test('fetch-applications', async () => {
   recording = setupProjectRecording({
     directory: __dirname,
-    name: 'fetch-access-roles',
+    name: 'fetch-applications',
   });
 
   const stepConfig = buildStepTestConfigForStep(Steps.APPLICATIONS);

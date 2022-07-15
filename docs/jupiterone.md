@@ -103,6 +103,7 @@ The following relationships are created:
 | `simplemdm_account`   | **HAS**               | `simplemdm_application` |
 | `simplemdm_account`   | **HAS**               | `simplemdm_device`      |
 | `simplemdm_device`    | **HAS**               | `simplemdm_user`        |
+| `simplemdm_device`    | **INSTALLED**         | `simplemdm_application` |
 
 <!--
 ********************************************************************************

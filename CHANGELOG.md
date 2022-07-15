@@ -8,6 +8,11 @@ and this project adheres to
 
 ## [Unreleased]
 
+### Added
+
+- Added new relationship
+  - `simplemdm_device_installed_application`
+
 ## 1.0.0 - 2022-07-12
 
 ### Added

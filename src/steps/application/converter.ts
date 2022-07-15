@@ -2,6 +2,7 @@ import {
   createDirectRelationship,
   createIntegrationEntity,
   Entity,
+  parseTimePropertyValue,
   Relationship,
   RelationshipClass,
 } from '@jupiterone/integration-sdk-core';
@@ -23,9 +24,14 @@ export function createApplicationEntity(app: SimpleMDMApplication): Entity {
         _key: getApplicationKey(app.id),
         id: app.id.toString(),
         name: app.attributes.name,
-        appType: app.attributes.app_type,
-        itunesStoreId: app.attributes.itunes_store_id,
-        bundleIdentifier: app.attributes.bundle_identifier,
+        identifier: app.attributes.identifier,
+        version: app.attributes.version,
+        shortVersion: app.attributes.short_version,
+        bundleSize: app.attributes.bundle_size,
+        dynamicSize: app.attributes.dynamic_size,
+        managed: app.attributes.managed,
+        discoveredOn: parseTimePropertyValue(app.attributes.discovered_at),
+        lastSeenOn: parseTimePropertyValue(app.attributes.last_seen_at),
       },
     },
   });
@@ -38,6 +44,17 @@ export function createAccountApplicationRelationship(
   return createDirectRelationship({
     _class: RelationshipClass.HAS,
     from: account,
+    to: application,
+  });
+}
+
+export function createDeviceApplicationRelationship(
+  device: Entity,
+  application: Entity,
+): Relationship {
+  return createDirectRelationship({
+    _class: RelationshipClass.INSTALLED,
+    from: device,
     to: application,
   });
 }
