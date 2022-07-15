@@ -10,7 +10,6 @@ import {
   SimpleMDMResponse,
   SimpleMDMAccount,
   SimpleMDMDevice,
-  SimpleMDMApplication,
   SimpleMDMUser,
 } from './types';
 
@@ -127,21 +126,6 @@ export class APIClient {
   }
 
   /**
-   * Iterates each application resource in the provider.
-   *
-   * @param iteratee receives each resource to produce entities/relationships
-   */
-  public async iterateApplications(
-    iteratee: ResourceIteratee<SimpleMDMApplication>,
-  ): Promise<void> {
-    await this.paginatedRequest<SimpleMDMApplication>(
-      this.withBaseUri(`/api/v1/apps?limit=${this.perPage}`),
-      'GET',
-      iteratee,
-    );
-  }
-
-  /**
    * Iterates each device resource in the provider.
    *
    * @param iteratee receives each resource to produce entities/relationships
@@ -151,6 +135,22 @@ export class APIClient {
   ): Promise<void> {
     await this.paginatedRequest<SimpleMDMDevice>(
       this.withBaseUri(`/api/v1/devices?limit=${this.perPage}`),
+      'GET',
+      iteratee,
+    );
+  }
+
+  /**
+   * Iterates each device's installed application in the provider.
+   *
+   * @param iteratee receives each resource to produce entities/relationships
+   */
+  public async iterateInstalledApplications(
+    deviceId: string,
+    iteratee: ResourceIteratee<any>,
+  ): Promise<void> {
+    await this.paginatedRequest<any>(
+      this.withBaseUri(`/api/v1/devices/${deviceId}/installed_apps`),
       'GET',
       iteratee,
     );

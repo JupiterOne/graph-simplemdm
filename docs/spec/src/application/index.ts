@@ -8,7 +8,7 @@ export const applicationSpec: StepSpec<IntegrationConfig>[] = [
      * PATTERN: Fetch Entities
      */
     id: 'fetch-applications',
-    name: 'Fetch Applications',
+    name: 'Fetch Installed Applications',
     entities: [
       {
         resourceName: 'Application',
@@ -23,8 +23,14 @@ export const applicationSpec: StepSpec<IntegrationConfig>[] = [
         _class: RelationshipClass.HAS,
         targetType: 'simplemdm_application',
       },
+      {
+        _type: 'simplemdm_device_installed_application',
+        sourceType: 'simplemdm_device',
+        _class: RelationshipClass.INSTALLED,
+        targetType: 'simplemdm_application',
+      },
     ],
-    dependsOn: ['fetch-account'],
+    dependsOn: ['fetch-account', 'fetch-devices'],
     implemented: true,
   },
 ];

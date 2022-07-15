@@ -20,9 +20,14 @@ export interface SimpleMDMAccount {
 export interface SimpleMDMApplication extends SimpleMDMEntity {
   attributes: {
     name: string;
-    app_type: string;
-    itunes_store_id: string;
-    bundle_identifier: string;
+    identifier: string;
+    version: string;
+    short_version: string;
+    bundle_size: number;
+    dynamic_size: number;
+    managed: boolean;
+    discovered_at: string;
+    last_seen_at: string;
   };
 }
 
