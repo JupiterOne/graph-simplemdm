@@ -1,0 +1,49 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`fetch-devices 1`] = `
+Array [
+  Object {
+    "_class": Array [
+      "Device",
+    ],
+    "_key": "simplemdm_device:872292",
+    "_type": "simplemdm_device",
+    "bluetoothMac": "14:7D:DA:4E:50:6D",
+    "buildVersion": "21A559",
+    "category": "other",
+    "createdOn": undefined,
+    "deviceCapacity": 250,
+    "deviceId": "872292",
+    "deviceName": "RickandMorty-MBP",
+    "displayName": "JupiterOne Macbook Air",
+    "enrollmentChannels": Array [
+      "device",
+      "user",
+    ],
+    "ethernetMacs": Array [
+      "14:7d:da:4f:73:10",
+    ],
+    "id": "872292",
+    "lastSeenAt": 1655845792000,
+    "lastSeenIp": "[REDACTED]",
+    "lastSeenOn": 1655845792000,
+    "macAddress": Array [
+      "14:7d:da:4f:73:10",
+      "14:7D:DA:4E:50:6D",
+      "14:7d:da:4f:73:10",
+    ],
+    "make": "Apple Inc.",
+    "model": "MacBookAir9,1",
+    "modelName": "MacBook Air (Retina, 13-inch, 2020)",
+    "name": "JupiterOne Macbook Air",
+    "osVersion": "12.0.1",
+    "processorArchitecture": "Intel",
+    "productName": "MacBookAir9,1",
+    "serial": "C02D91CNPV4M",
+    "serialNumber": "C02D91CNPV4M",
+    "status": "assigned",
+    "uniqueIdentifier": "644D7162-2B41-5A68-9AA7-8DB4FC6ABFF5",
+    "wifiMac": "14:7d:da:4f:73:10",
+  },
+]
+`;

@@ -28,6 +28,7 @@ export function createDeviceEntity(device: SimpleMDMDevice): Entity {
         deviceId: device.id.toString(),
         name: device.attributes.name,
         lastSeenAt: lastSeenAt && lastSeenAt > 0 ? lastSeenAt : undefined,
+        lastSeenOn: lastSeenAt,
         lastSeenIp: device.attributes.last_seen_ip,
         status:
           device.attributes.status == 'enrolled'
@@ -42,11 +43,16 @@ export function createDeviceEntity(device: SimpleMDMDevice): Entity {
         productName: device.attributes.product_name,
         uniqueIdentifier: device.attributes.unique_identifier,
         serial: device.attributes.serial_number,
+        serialNumber: device.attributes.serial_number,
         processorArchitecture: device.attributes.processor_architecture,
         deviceCapacity: device.attributes.device_capacity,
         bluetoothMac: device.attributes.bluetooth_mac,
         ethernetMacs: device.attributes.ethernet_macs,
         wifiMac: device.attributes.wifi_mac,
+        macAddress: [
+          device.attributes.wifi_mac,
+          device.attributes.bluetooth_mac,
+        ].concat(device.attributes.ethernet_macs),
         category: `other`,
         make: `Apple Inc.`,
       },
