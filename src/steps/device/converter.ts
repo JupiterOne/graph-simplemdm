@@ -43,7 +43,6 @@ export function createDeviceEntity(device: SimpleMDMDevice): Entity {
         productName: device.attributes.product_name,
         uniqueIdentifier: device.attributes.unique_identifier,
         serial: device.attributes.serial_number,
-        serialNumber: device.attributes.serial_number,
         processorArchitecture: device.attributes.processor_architecture,
         deviceCapacity: device.attributes.device_capacity,
         bluetoothMac: device.attributes.bluetooth_mac,
