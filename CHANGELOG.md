@@ -8,6 +8,12 @@ and this project adheres to
 
 ## [Unreleased]
 
+## 1.1.1 - 2022-06-20
+
+### Added
+
+- `lastSeenOn` and `macAddress` on Device entities.
+
 ## 1.1.0 - 2022-07-15
 
 ### Added
