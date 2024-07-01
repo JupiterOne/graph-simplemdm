@@ -13,18 +13,23 @@ import {
   SimpleMDMUser,
 } from './types';
 
+import { URL, URLSearchParams } from 'url';
+
 export type ResourceIteratee<T> = (each: T) => Promise<void> | void;
 
 export class APIClient {
   constructor(readonly config: IntegrationConfig) {}
 
-  private perPage = 100;
-  private baseUri = `https://a.simplemdm.com`;
+  private baseUri = new URL(`https://a.simplemdm.com`);
   private encodedApiKey = Buffer.from(this.config.apiKey + ':').toString(
     'base64',
   );
 
-  private withBaseUri = (path: string) => `${this.baseUri}${path}`;
+  private withBaseUri = (path: string, params?: Record<string, string>) => {
+    const url = new URL(path, this.baseUri);
+    url.search = new URLSearchParams(params).toString();
+    return url.toString();
+  };
 
   private checkStatus = (response: Response) => {
     if (response.ok) {
@@ -73,6 +78,13 @@ export class APIClient {
     }
   }
 
+  /**
+   * Pagination logic based on docs found here: https://api.simplemdm.com/#pagination
+   * @param uri
+   * @param method
+   * @param iteratee
+   * @private
+   */
   private async paginatedRequest<T>(
     uri: string,
     method: 'GET' | 'HEAD' = 'GET',
@@ -85,20 +97,30 @@ export class APIClient {
           nextUri || uri,
           method,
         );
-        nextUri = response['has_more']
-          ? `${uri}&starting_after=${
-              response.data[response.data.length - 1].id
-            }`
-          : null;
+
+        if (response.has_more && response.data.length > 0) {
+          nextUri = this.withBaseUri(uri, {
+            limit: '100',
+            starting_after:
+              response.data[response.data.length - 1].id.toString(),
+          });
+        } else {
+          nextUri = null;
+        }
+
         for (const item of response.data) {
           await iteratee(item as unknown as T);
         }
       } while (nextUri);
     } catch (err) {
+      if (err instanceof IntegrationProviderAPIError) {
+        throw err;
+      }
+
       throw new IntegrationProviderAPIError({
         cause: new Error(err.message),
         endpoint: uri,
-        status: err.statusCode,
+        status: err.status,
         statusText: err.message,
       });
     }
@@ -134,7 +156,7 @@ export class APIClient {
     iteratee: ResourceIteratee<SimpleMDMDevice>,
   ): Promise<void> {
     await this.paginatedRequest<SimpleMDMDevice>(
-      this.withBaseUri(`/api/v1/devices?limit=${this.perPage}`),
+      this.withBaseUri(`/api/v1/devices`, { limit: '100' }),
       'GET',
       iteratee,
     );
@@ -143,6 +165,7 @@ export class APIClient {
   /**
    * Iterates each device's installed application in the provider.
    *
+   * @param deviceId
    * @param iteratee receives each resource to produce entities/relationships
    */
   public async iterateInstalledApplications(
@@ -150,7 +173,9 @@ export class APIClient {
     iteratee: ResourceIteratee<any>,
   ): Promise<void> {
     await this.paginatedRequest<any>(
-      this.withBaseUri(`/api/v1/devices/${deviceId}/installed_apps`),
+      this.withBaseUri(`/api/v1/devices/${deviceId}/installed_apps`, {
+        limit: '100',
+      }),
       'GET',
       iteratee,
     );
@@ -159,6 +184,7 @@ export class APIClient {
   /**
    * Iterates each user resource in the provider.
    *
+   * @param deviceId
    * @param iteratee receives each resource to produce entities/relationships
    */
   public async iterateUsers(
@@ -166,9 +192,9 @@ export class APIClient {
     iteratee: ResourceIteratee<SimpleMDMUser>,
   ): Promise<void> {
     await this.paginatedRequest<SimpleMDMUser>(
-      this.withBaseUri(
-        `/api/v1/devices/${deviceId}/users?limit=${this.perPage}`,
-      ),
+      this.withBaseUri(`/api/v1/devices/${deviceId}/users`, {
+        limit: '100',
+      }),
       'GET',
       iteratee,
     );

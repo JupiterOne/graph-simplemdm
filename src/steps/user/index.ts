@@ -29,13 +29,25 @@ export async function fetchUsers({
         return;
       }
 
-      await apiClient.iterateUsers(device.id.toString(), async (user) => {
-        const userEntity = await jobState.addEntity(createUserEntity(user));
+      await apiClient
+        .iterateUsers(device.id.toString(), async (user) => {
+          const userEntity = await jobState.addEntity(createUserEntity(user));
 
-        await jobState.addRelationship(
-          createDeviceUserRelationship(deviceEntity, userEntity),
-        );
-      });
+          await jobState.addRelationship(
+            createDeviceUserRelationship(deviceEntity, userEntity),
+          );
+        })
+        .catch((error) => {
+          if (error.status === 422) {
+            logger.info(
+              { deviceId: device.id },
+              'Received status 422 for this device, does not support user iteration.',
+            );
+            // Based on a hunch, this device is not running macOS and therefore does not support this operation.
+            // Docs: https://api.simplemdm.com/#delete-user
+          }
+          throw error;
+        });
     },
   );
 }
