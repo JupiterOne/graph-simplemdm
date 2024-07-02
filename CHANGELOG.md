@@ -13,12 +13,12 @@ and this project adheres to
 ### Fixed
 
 - Pagination was incorrectly adding serach params to the URL. Fixed.
-- Handle 422s for devices that are not running MacOS and therefore don't support fetching of users.
+- Handle 422s for devices that are not running MacOS and therefore don't support
+  fetching of users.
 
 ### Upgraded
 
 - Upgraded to Nodejs 18 and SDK v12
-
 
 ## 1.1.1 - 2022-06-20
 
