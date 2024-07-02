@@ -39,14 +39,15 @@ export async function fetchUsers({
         })
         .catch((error) => {
           if (error.status === 422) {
+            // Based on a hunch, this device is not running macOS and therefore does not support this operation.
+            // Docs: https://api.simplemdm.com/#delete-user
             logger.info(
               { deviceId: device.id },
               'Received status 422 for this device, does not support user iteration.',
             );
-            // Based on a hunch, this device is not running macOS and therefore does not support this operation.
-            // Docs: https://api.simplemdm.com/#delete-user
+          } else {
+            throw error;
           }
-          throw error;
         });
     },
   );
