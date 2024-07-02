@@ -1,9 +1,9 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`fetch-devices 1`] = `
-Array [
-  Object {
-    "_class": Array [
+[
+  {
+    "_class": [
       "Device",
     ],
     "_key": "simplemdm_device:872292",
@@ -16,18 +16,18 @@ Array [
     "deviceId": "872292",
     "deviceName": "RickandMorty-MBP",
     "displayName": "JupiterOne Macbook Air",
-    "enrollmentChannels": Array [
+    "enrollmentChannels": [
       "device",
       "user",
     ],
-    "ethernetMacs": Array [
+    "ethernetMacs": [
       "14:7d:da:4f:73:10",
     ],
     "id": "872292",
     "lastSeenAt": 1655845792000,
     "lastSeenIp": "[REDACTED]",
     "lastSeenOn": 1655845792000,
-    "macAddress": Array [
+    "macAddress": [
       "14:7d:da:4f:73:10",
       "14:7D:DA:4E:50:6D",
       "14:7d:da:4f:73:10",
