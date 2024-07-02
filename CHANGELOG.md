@@ -8,11 +8,11 @@ and this project adheres to
 
 ## [Unreleased]
 
-## 1.1.1 - 2024-07-02
+## 1.1.2 & 1.1.3 - 2024-07-02
 
 ### Fixed
 
-- Pagination was incorrectly adding serach params to the URL. Fixed.
+- Pagination was incorrectly adding search params to the URL. Fixed.
 - Handle 422s for devices that are not running MacOS and therefore don't support
   fetching of users.
 
